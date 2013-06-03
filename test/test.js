@@ -46,7 +46,6 @@ describe('middleware test 1', function() {
   }
 
   var middleware1 = middleware.createMiddlewareFromFilter(filter1)
-  
   var middleware2 = middleware.createMiddlewareFromFilter(filter2, ['first-middleware'])
   var middleware3 = middleware.createMiddlewareFromFilter(filter3, ['first-middleware'])
 
@@ -97,7 +96,7 @@ describe('middleware test 1', function() {
     }
 
     handlerFactory = middleware.createDependencyManagedHandlerFactory(
-      ['second-middleware', 'third-middleware'], handlerFactory)
+      handlerFactory, ['second-middleware', 'third-middleware'])
 
     var config = {
       middlewares: {
