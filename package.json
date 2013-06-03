@@ -1,0 +1,36 @@
+{
+  "author": {
+    "name": "Soares Chen",
+    "email": "soares.chen@gmail.com",
+    "url": "http://soareschen.com"
+  },
+  "name": "quiver-middleware",
+  "desription": "Manage middleware dependencies by composing filters and handler factories",
+  "version": "0.0.1",
+  "homepage": "https://github.com/quiverjs/middleware",
+  "repository": {
+    "url": "git@github.com:quiverjs/middleware.git"
+  },
+  "dependencies": {
+    "quiver-copy": ">=0.0.1",
+    "quiver-error": ">=0.0.2",
+    "quiver-safe-callback": ">=0.0.3"
+  },
+  "devDependencies": {
+    "quiver-stream-channel": ">=0.0.8",
+    "mocha": "1.8.x",
+    "should": "1.2.x"
+  },
+  "bugs": {
+    "url": "https://github.com/quiverjs/middleware/issues",
+    "email": "quiverjs@soareschen.com"
+  },
+  "licenses": {
+    "type": "MIT",
+    "url": "https://raw.github.com/quiverjs/license/master/LICENSE"
+  },
+  "main": "./lib/middleware",
+  "scripts": {
+    "test": "make test"
+  }
+}
