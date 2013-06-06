@@ -61,7 +61,7 @@ describe('middleware test 1', function() {
   })
 
   it('simple dependencies', function(callback) {
-    var handlerFactory = function(config, callback) {
+    var handlerBuilder = function(config, callback) {
       var handler = function(args, inputStreamable, callback) {
         should.exist(args.first)
         args.first.should.equal('first filter')
@@ -81,7 +81,7 @@ describe('middleware test 1', function() {
       }
     }
 
-    middleware2(config, handlerFactory, function(err, handler) {
+    middleware2(config, handlerBuilder, function(err, handler) {
       if(err) throw err
 
       handler({}, streamChannel.createEmptyStreamable(), callback)
@@ -89,7 +89,7 @@ describe('middleware test 1', function() {
   })
 
   it('repeated dependencies', function(callback) {
-    var handlerFactory = function(config, callback) {
+    var handlerBuilder = function(config, callback) {
       var handler = function(args, inputStreamable, callback) {
         should.exist(args.first)
         args.first.should.equal('first filter')
@@ -106,8 +106,8 @@ describe('middleware test 1', function() {
       callback(null, handler)
     }
 
-    handlerFactory = middleware.createDependencyManagedHandlerFactory(
-      ['second-middleware', 'third-middleware'], handlerFactory)
+    handlerBuilder = middleware.createDependencyManagedHandlerBuilder(
+      ['second-middleware', 'third-middleware'], handlerBuilder)
 
     var config = {
       'stream-middlewares': {
@@ -117,7 +117,7 @@ describe('middleware test 1', function() {
       }
     }
 
-    handlerFactory(config, function(err, handler) {
+    handlerBuilder(config, function(err, handler) {
       if(err) throw err
 
       handler({}, streamChannel.createEmptyStreamable(), callback)
@@ -135,15 +135,15 @@ describe('middleware test 1', function() {
       dependencies: ['first-middleware']
     })
 
-    var handlerFactory = function(config, callback) {
+    var handlerBuilder = function(config, callback) {
       var handler = function(args, inputStreamable, callback) {
         callback(null, streamChannel.createEmptyStreamable())
       }
       callback(null, handler)
     }
 
-    handlerFactory = middleware.createDependencyManagedHandlerFactory(
-      ['first-middleware'], handlerFactory)
+    handlerBuilder = middleware.createDependencyManagedHandlerBuilder(
+      ['first-middleware'], handlerBuilder)
 
     var config = {
       'stream-middlewares': {
@@ -152,7 +152,7 @@ describe('middleware test 1', function() {
       }
     }
 
-    handlerFactory(config, function(err, handler) {
+    handlerBuilder(config, function(err, handler) {
       should.exist(err)
 
       callback()
