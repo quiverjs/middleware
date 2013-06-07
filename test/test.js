@@ -45,19 +45,23 @@ describe('middleware test 1', function() {
     callback(null, filteredHandler)
   }
 
-  var middleware1 = middleware.createMiddleware({
+  var middleware1 = middleware.createStreamMiddleware({
     filter: filter1,
     middlewareName: 'first-middleware'
   })
-  var middleware2 = middleware.createMiddleware({
+  var middleware2 = middleware.createStreamMiddleware({
     filter: filter2,
     middlewareName: 'second-middleware',
     dependencies: ['first-middleware']
   })
-  var middleware3 = middleware.createMiddleware({
+  var middleware3 = middleware.createStreamMiddleware({
     filter: filter3,
     middlewareName: 'third-middleware',
     dependencies: ['first-middleware']
+  })
+  var middleware4 = middleware.createStreamMiddleware({
+    middlewareName: 'fourth-middleware',
+    dependencies: ['second-middleware', 'third-middleware']
   })
 
   it('simple dependencies', function(callback) {
@@ -105,32 +109,31 @@ describe('middleware test 1', function() {
 
       callback(null, handler)
     }
-
-    handlerBuilder = middleware.createDependencyManagedHandlerBuilder(
-      ['second-middleware', 'third-middleware'], handlerBuilder)
+    handlerBuilder = middleware.createMiddlewareManagedBuilder(middleware4, handlerBuilder)
 
     var config = {
       'stream-middlewares': {
         'first-middleware': middleware1,
         'second-middleware': middleware2,
-        'third-middleware': middleware3
+        'third-middleware': middleware3,
+        'fourth-middleware': middleware4
       }
     }
 
     handlerBuilder(config, function(err, handler) {
-      if(err) throw err
+      should.not.exist(err)
 
       handler({}, streamChannel.createEmptyStreamable(), callback)
     })
   })
 
   it('cyclic dependency prevention test', function(callback) {
-    var middleware1 = middleware.createMiddleware({
+    var middleware1 = middleware.createStreamMiddleware({
       middlewareName: 'first-middleware',
       dependencies: ['second-middleware']
     })
 
-    var middleware2 = middleware.createMiddleware({
+    var middleware2 = middleware.createStreamMiddleware({
       middlewareName: 'second-middleware',
       dependencies: ['first-middleware']
     })
@@ -142,9 +145,6 @@ describe('middleware test 1', function() {
       callback(null, handler)
     }
 
-    handlerBuilder = middleware.createDependencyManagedHandlerBuilder(
-      ['first-middleware'], handlerBuilder)
-
     var config = {
       'stream-middlewares': {
         'first-middleware': middleware1,
@@ -152,7 +152,7 @@ describe('middleware test 1', function() {
       }
     }
 
-    handlerBuilder(config, function(err, handler) {
+    middleware1(config, handlerBuilder, function(err, handler) {
       should.exist(err)
 
       callback()
