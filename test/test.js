@@ -47,16 +47,16 @@ describe('middleware test 1', function() {
 
   var middleware1 = middleware.createStreamMiddleware({
     filter: filter1,
-    middlewareName: 'first-middleware'
+    name: 'first-middleware'
   })
   var middleware2 = middleware.createStreamMiddleware({
     filter: filter2,
-    middlewareName: 'second-middleware',
+    name: 'second-middleware',
     dependencies: ['first-middleware']
   })
   var middleware3 = middleware.createStreamMiddleware({
     filter: filter3,
-    middlewareName: 'third-middleware',
+    name: 'third-middleware',
     dependencies: ['first-middleware']
   })
 
@@ -125,12 +125,12 @@ describe('middleware test 1', function() {
 
   it('cyclic dependency prevention test', function(callback) {
     var middleware1 = middleware.createStreamMiddleware({
-      middlewareName: 'first-middleware',
+      name: 'first-middleware',
       dependencies: ['second-middleware']
     })
 
     var middleware2 = middleware.createStreamMiddleware({
-      middlewareName: 'second-middleware',
+      name: 'second-middleware',
       dependencies: ['first-middleware']
     })
 
