@@ -59,10 +59,6 @@ describe('middleware test 1', function() {
     middlewareName: 'third-middleware',
     dependencies: ['first-middleware']
   })
-  var middleware4 = middleware.createStreamMiddleware({
-    middlewareName: 'fourth-middleware',
-    dependencies: ['second-middleware', 'third-middleware']
-  })
 
   it('simple dependencies', function(callback) {
     var handlerBuilder = function(config, callback) {
@@ -109,14 +105,14 @@ describe('middleware test 1', function() {
 
       callback(null, handler)
     }
-    handlerBuilder = middleware.createMiddlewareManagedBuilder(middleware4, handlerBuilder)
+    handlerBuilder = middleware.createDependencyManagedStreamHandlerBuilder(
+      ['second-middleware', 'third-middleware'], handlerBuilder)
 
     var config = {
       'stream-middlewares': {
         'first-middleware': middleware1,
         'second-middleware': middleware2,
-        'third-middleware': middleware3,
-        'fourth-middleware': middleware4
+        'third-middleware': middleware3
       }
     }
 
