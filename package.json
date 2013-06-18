@@ -6,7 +6,7 @@
   },
   "name": "quiver-middleware",
   "desription": "Manage middleware dependencies by composing filters and handler factories",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "homepage": "https://github.com/quiverjs/middleware",
   "repository": {
     "url": "git@github.com:quiverjs/middleware.git"
@@ -17,7 +17,8 @@
     "quiver-safe-callback": ">=0.0.3"
   },
   "devDependencies": {
-    "quiver-stream-channel": ">=0.0.8",
+    "quiver-stream-channel": ">=0.0.11",
+    "quiver-stream-convert": ">=0.0.8",
     "mocha": "1.8.x",
     "should": "1.2.x"
   },

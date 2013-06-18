@@ -4,6 +4,7 @@
 var should = require('should')
 var middleware = require('../lib/middleware')
 var streamChannel = require('quiver-stream-channel')
+var streamConvert = require('quiver-stream-convert')
 
 describe('middleware test 1', function() {
   var filter1 = function(config, handler, callback) {
@@ -150,6 +151,72 @@ describe('middleware test 1', function() {
 
     middleware1(config, handlerBuilder, function(err, handler) {
       should.exist(err)
+
+      callback()
+    })
+  })
+})
+
+describe('input handleable test', function() {
+  it('basic input handleable', function(callback) {
+    var inputHandlerBuilder1 = function(config, callback) {
+      var handler = function(args, inputStreamable, callback) {
+        callback(null, streamConvert.textToStreamable('input handleable 1'))
+      }
+
+      callback(null, handler)
+    }
+
+    var inputHandleableMiddleware1 = middleware.createInputHandleableMiddleware({
+      name: 'input-handleable-1',
+      inputHandlerBuilder: inputHandlerBuilder1
+    })
+
+    var inputHandlerBuilder2 = function(config, callback) {
+      var handler1 = config.inputHandleables['input-handleable-1'].toStreamHandler()
+
+      var handler = function(args, inputStreamable, callback) {
+        handler1(args, inputStreamable, callback)
+      }
+
+      callback(null, handler)
+    }
+
+    var inputHandleableMiddleware2 = middleware.createInputHandleableMiddleware({
+      name: 'input-handleable-2',
+      inputHandlerBuilder: inputHandlerBuilder2,
+      dependencies: ['input-handleable-1']
+    })
+
+    var mainHandlerBuilder = function(config, callback) {
+      var handler2 = config.inputHandleables['input-handleable-2'].toStreamHandler()
+
+      handler2({}, streamChannel.createEmptyStreamable(), function(err, resultStreamable) {
+        if(err) throw err
+
+        streamConvert.streamableToText(resultStreamable, function(err, text) {
+          if(err) throw err
+
+          text.should.equal('input handleable 1')
+
+          callback(null, handler2)
+        })
+      })
+    }
+
+    mainHandlerBuilder = middleware.createDependencyManagedStreamHandlerBuilder(
+      ['input-handleable-2'], mainHandlerBuilder)
+
+    var config = {
+      'stream-middlewares': {
+        'input-handleable-1': inputHandleableMiddleware1,
+        'input-handleable-2': inputHandleableMiddleware2
+      }
+    }
+
+    mainHandlerBuilder(config, function(err, handler) {
+      should.not.exist(err)
+      should.exist(handler)
 
       callback()
     })
