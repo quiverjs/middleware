@@ -6,13 +6,17 @@
   },
   "name": "quiver-middleware",
   "desription": "Manage middleware dependencies by composing filters and handler factories",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "homepage": "https://github.com/quiverjs/middleware",
   "repository": {
     "url": "git@github.com:quiverjs/middleware.git"
   },
   "dependencies": {
     "quiver-copy": "0.0.x",
+    "quiver-merge": "0.0.x",
+    "quiver-param": "0.0.x",
+    "quiver-error": "0.0.x",
+    "quiver-handleable": "0.0.x",
     "quiver-safe-callback": "0.0.x"
   },
   "devDependencies": {
@@ -29,7 +33,7 @@
     "type": "MIT",
     "url": "https://raw.github.com/quiverjs/license/master/LICENSE"
   },
-  "main": "./lib/middleware",
+  "main": "./lib/lib",
   "scripts": {
     "test": "make test"
   }

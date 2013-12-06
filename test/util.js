@@ -1,8 +1,8 @@
 
 'use strict'
 
+var middleware = require('../lib/lib')
 var should = require('should')
-var middleware = require('../lib/middleware')
 var streamChannel = require('quiver-stream-channel')
 var streamConvert = require('quiver-stream-convert')
 
@@ -33,10 +33,9 @@ describe('middleware test 1', function() {
   }
 
   var middleware1 = middleware.createMiddlewareFromFilter(filter1)
-  
   var middleware2 = middleware.createMiddlewareFromFilter(filter2)
-  middleware2 = middleware.createMiddlewareManagedMiddleware(
-    middleware2, [middleware1])
+
+  middleware2 = middleware.combineMiddlewares([middleware1, middleware2])
 
   it('simple dependencies', function(callback) {
     var handlerBuilder = function(config, callback) {
@@ -53,8 +52,7 @@ describe('middleware test 1', function() {
       callback(null, handler)
     }
 
-    handlerBuilder = 
-      middleware.createMiddlewareManagedHandlerBuilder(handlerBuilder, [middleware2])
+    handlerBuilder = middleware.createMiddlewareManagedHandlerBuilder(middleware2, handlerBuilder)
 
     handlerBuilder({}, function(err, handler) {
       if(err) throw err
