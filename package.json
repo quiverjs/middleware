@@ -17,11 +17,12 @@
     "quiver-param": "0.0.x",
     "quiver-error": "0.0.x",
     "quiver-handleable": "0.0.x",
-    "quiver-safe-callback": "0.0.x"
+    "quiver-safe-callback": "0.0.x",
+    "quiver-simple-handler": "0.0.x"
   },
   "devDependencies": {
-    "quiver-stream-channel": ">=0.0.11",
-    "quiver-stream-convert": ">=0.0.8",
+    "quiver-stream-channel": "0.0.x",
+    "quiver-stream-convert": "0.0.x",
     "mocha": "1.8.x",
     "should": "1.2.x"
   },
