@@ -17,12 +17,14 @@ describe('middleware test', function() {
   }
 
   var middleware1 = function(config, handlerBuilder, callback) {
+    should.not.exists(config.middleware1Loaded)
     config.middleware1Loaded = true
     handlerBuilder(config, callback)
   }
 
   var middleware2 = function(config, handlerBuilder, callback) {
     should.exists(config.middleware1Loaded)
+    should.not.exists(config.middleware2Loaded)
 
     config.middleware2Loaded = true
     handlerBuilder(config, callback)
@@ -74,5 +76,32 @@ describe('middleware test', function() {
 
       callback()
     })
+  })
+
+  it('install once middleware test', function(callback) {
+    var middleware1Loader = middleware.createMiddlewareLoadingMiddleware('middleware1')
+    var middleware2Loader = middleware.createMiddlewareLoadingMiddleware('middleware2')
+
+    var managedMiddleware1 = middleware.createInstallOnceMiddleware('middleware1', middleware1)
+    var managedMiddleware2 = middleware.createInstallOnceMiddleware('middleware2', managedMiddleware2)
+
+    managedMiddleware2 = middleware.combineMiddlewares([middleware1Loader, middleware2])
+
+    var handlerMiddleware = middleware.combineMiddlewares([middleware1Loader, middleware2Loader])
+    var managedHandlerBuilder = middleware.createMiddlewareManagedHandlerBuilder(handlerMiddleware, handlerBuilder)
+
+    var config = {
+      quiverMiddlewares: {
+        middleware1: managedMiddleware1,
+        middleware2: managedMiddleware2
+      }
+    }
+
+    managedHandlerBuilder(config, function(err, handler) {
+      should.not.exists(err)
+
+      callback()
+    })
+
   })
 })
