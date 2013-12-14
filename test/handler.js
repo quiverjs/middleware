@@ -2,10 +2,14 @@
 'use strict'
 
 var should = require('should')
-var middleware = require('../lib/lib')
+var middlewareLib = require('../lib/lib')
 var handleable = require('quiver-handleable')
 var streamChannel = require('quiver-stream-channel')
 var streamConvert = require('quiver-stream-convert')
+
+var echoHandler = function(args, inputStreamable, callback) {
+  callback(null, inputStreamable)
+}
 
 describe('input handler test', function() {
   var testHandleableBuilder = function(config, callback) {
@@ -52,8 +56,8 @@ describe('input handler test', function() {
       })
     }
 
-    var handlerMidddleware = middleware.createHandleableLoadingMiddleware('test handler')
-    handlerBuilder = middleware.createMiddlewareManagedHandlerBuilder(
+    var handlerMidddleware = middlewareLib.createHandleableLoadingMiddleware('test handler')
+    handlerBuilder = middlewareLib.createMiddlewareManagedHandlerBuilder(
       handlerMidddleware, handlerBuilder)
 
     handlerBuilder(config, function(err, handler) {
@@ -68,25 +72,21 @@ describe('input handler test', function() {
       var inHandler = config.quiverStreamHandlers['test handler']
       should.exists(inHandler)
 
-      var handler = function(args, inputStreamable, callback) {
-        callback(null, inputStreamable)
-      }
-
       var inputStreamable = streamConvert.jsonToStreamable({ value: 'hello world' })
       inHandler({}, inputStreamable, function(err, resultStreamable) {
         if(err) return callback(err)
 
-        callback(null, handler)
+        callback(null, echoHandler)
       })
     }
 
     var middlewares = [ ]
-    middlewares.push(middleware.createHandleableLoadingMiddleware('test handler'))
-    middlewares.push(middleware.createHandlerLoadingMiddleware('test handler', handleable.streamHandlerConvert))
+    middlewares.push(middlewareLib.createHandleableLoadingMiddleware('test handler'))
+    middlewares.push(middlewareLib.createHandlerLoadingMiddleware('test handler', handleable.streamHandlerConvert))
 
-    var handlerMidddleware = middleware.combineMiddlewares(middlewares)
+    var handlerMidddleware = middlewareLib.combineMiddlewares(middlewares)
 
-    handlerBuilder = middleware.createMiddlewareManagedHandlerBuilder(
+    handlerBuilder = middlewareLib.createMiddlewareManagedHandlerBuilder(
       handlerMidddleware, handlerBuilder)
 
     handlerBuilder(config, function(err, handler) {
@@ -101,33 +101,29 @@ describe('input handler test', function() {
       var inHandler = config.quiverSimpleHandlers['test handler']
       should.exists(inHandler)
 
-      var handler = function(args, inputStreamable, callback) {
-        callback(null, inputStreamable)
-      }
-
       var inJson = { value: 'hello world' }
       inHandler({}, inJson, function(err, result) {
         if(err) return callback(err)
 
         should.not.exists(result)
-        callback(null, handler)
+        callback(null, echoHandler)
       })
     }
 
     var middlewares = [ ]
 
-    middlewares.push(middleware.createHandleableLoadingMiddleware(
+    middlewares.push(middlewareLib.createHandleableLoadingMiddleware(
       'test handler'))
 
-    middlewares.push(middleware.createHandlerLoadingMiddleware(
+    middlewares.push(middlewareLib.createHandlerLoadingMiddleware(
       'test handler', handleable.streamHandlerConvert))
 
-    middlewares.push(middleware.createSimpleHandlerLoadingMiddleware(
+    middlewares.push(middlewareLib.createSimpleHandlerLoadingMiddleware(
       'test handler', 'json', 'void'))
 
-    var handlerMidddleware = middleware.combineMiddlewares(middlewares)
+    var handlerMidddleware = middlewareLib.combineMiddlewares(middlewares)
 
-    handlerBuilder = middleware.createMiddlewareManagedHandlerBuilder(
+    handlerBuilder = middlewareLib.createMiddlewareManagedHandlerBuilder(
       handlerMidddleware, handlerBuilder)
 
     handlerBuilder(config, function(err, handler) {
@@ -142,16 +138,12 @@ describe('input handler test', function() {
       var inHandler = config.quiverSimpleHandlers['test handler']
       should.exists(inHandler)
 
-      var handler = function(args, inputStreamable, callback) {
-        callback(null, inputStreamable)
-      }
-
       var inJson = { value: 'hello world' }
       inHandler({}, inJson, function(err, result) {
         if(err) return callback(err)
 
         should.not.exists(result)
-        callback(null, handler)
+        callback(null, echoHandler)
       })
     }
 
@@ -162,9 +154,9 @@ describe('input handler test', function() {
       outputType: 'void'
     }
 
-    var handlerMidddleware = middleware.createInputHandlerMiddlewareFromSpec(handleableSpec)
+    var handlerMidddleware = middlewareLib.createInputHandlerMiddlewareFromSpec(handleableSpec)
 
-    handlerBuilder = middleware.createMiddlewareManagedHandlerBuilder(
+    handlerBuilder = middlewareLib.createMiddlewareManagedHandlerBuilder(
       handlerMidddleware, handlerBuilder)
 
     handlerBuilder(config, function(err, handler) {
@@ -172,5 +164,26 @@ describe('input handler test', function() {
 
       callback()
     })
+  })
+
+  it('skip handler test', function(callback) {
+    var middleware = middlewareLib.createInputHandlerMiddleware('test handler', handleable.streamHandlerConvert)
+    
+    var handlerBuilder = function(config, callback) {
+      should.exists(config.quiverStreamHandlers['test handler'])
+
+      callback(null, echoHandler)
+    }
+
+    handlerBuilder = middlewareLib.createMiddlewareManagedHandlerBuilder(
+      middleware, handlerBuilder)
+
+    var config = {
+      quiverStreamHandlers: {
+        'test handler': echoHandler
+      }
+    }
+
+    handlerBuilder(config, callback)
   })
 })
