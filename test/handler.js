@@ -148,7 +148,7 @@ describe('input handler test', function() {
     }
 
     var handleableSpec = {
-      name: 'test handler',
+      handler: 'test handler',
       type: 'simple handler',
       inputType: 'json',
       outputType: 'void'
