@@ -3,6 +3,7 @@
 
 var should = require('should')
 var middleware = require('../lib/lib')
+var handleable = require('quiver-handleable')
 var streamChannel = require('quiver-stream-channel')
 
 describe('param test', function() {
@@ -75,8 +76,11 @@ describe('param test', function() {
     callback(null, handler)
   }
 
-  argsTestHandlerBuilder = middleware.createMiddlewareManagedHandlerBuilder(
-    argsParamMiddleware, argsTestHandlerBuilder)
+  var handleableBuilder = handleable.handlerBuilderToHandleableBuilder(
+    argsTestHandlerBuilder, handleable.streamHandlerConvert)
+
+  handleableBuilder = middleware.createMiddlewareManagedHandlerBuilder(
+    argsParamMiddleware, handleableBuilder)
 
   it('args param pass test', function(callback) {
     var config = { }
@@ -84,9 +88,10 @@ describe('param test', function() {
       test: 'test'
     }
 
-    argsTestHandlerBuilder(config, function(err, handler) {
+    handleableBuilder(config, function(err, handleable) {
       should.not.exists(err)
 
+      var handler = handleable.toStreamHandler()
       handler(args, streamChannel.createEmptyStreamable(), 
         function(err, resultStreamable) {
           should.not.exists(err)
@@ -100,9 +105,10 @@ describe('param test', function() {
     var config = { }
     var args = { }
 
-    argsTestHandlerBuilder(config, function(err, handler) {
+    handleableBuilder(config, function(err, handleable) {
       should.not.exists(err)
 
+      var handler = handleable.toStreamHandler()
       handler(args, streamChannel.createEmptyStreamable(), 
         function(err, resultStreamable) {
           should.exists(err)
@@ -112,15 +118,16 @@ describe('param test', function() {
     })
   })
 
-  it('args param fail test 1', function(callback) {
+  it('args param fail test 2', function(callback) {
     var config = { }
     var args = {
       test: ['test']
     }
 
-    argsTestHandlerBuilder(config, function(err, handler) {
+    handleableBuilder(config, function(err, handleable) {
       should.not.exists(err)
 
+      var handler = handleable.toStreamHandler()
       handler(args, streamChannel.createEmptyStreamable(), 
         function(err, resultStreamable) {
           should.exists(err)
