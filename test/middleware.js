@@ -2,7 +2,8 @@
 'use strict'
 
 var should = require('should')
-var middleware = require('../lib/lib')
+var middlewareLib = require('../lib/lib')
+var handleableLib = require('quiver-handleable')
 
 describe('middleware test', function() {
   var handlerBuilder = function(config, callback) {
@@ -31,11 +32,11 @@ describe('middleware test', function() {
   }
 
   it('dependency loading test', function(callback) {
-    var middleware1Loader = middleware.createMiddlewareLoadingMiddleware('middleware1')
-    var middleware2Loader = middleware.createMiddlewareLoadingMiddleware('middleware2')
+    var middleware1Loader = middlewareLib.createMiddlewareLoadingMiddleware('middleware1')
+    var middleware2Loader = middlewareLib.createMiddlewareLoadingMiddleware('middleware2')
 
-    var managedMiddleware2 = middleware.combineMiddlewares([middleware1Loader, middleware2])
-    var managedHandlerBuilder = middleware.createMiddlewareManagedHandlerBuilder(middleware2Loader, handlerBuilder)
+    var managedMiddleware2 = middlewareLib.combineMiddlewares([middleware1Loader, middleware2])
+    var managedHandlerBuilder = middlewareLib.createMiddlewareManagedHandlerBuilder(middleware2Loader, handlerBuilder)
 
     var config = {
       quiverMiddlewares: {
@@ -53,16 +54,16 @@ describe('middleware test', function() {
   })
 
   it('cyclic dependency prevention test', function(callback) {
-    var middleware1Loader = middleware.createMiddlewareLoadingMiddleware('middleware1')
-    var middleware2Loader = middleware.createMiddlewareLoadingMiddleware('middleware2')
+    var middleware1Loader = middlewareLib.createMiddlewareLoadingMiddleware('middleware1')
+    var middleware2Loader = middlewareLib.createMiddlewareLoadingMiddleware('middleware2')
 
-    var managedMiddleware1 = middleware.combineMiddlewares([middleware2Loader, middleware1])
-    var managedMiddleware2 = middleware.combineMiddlewares([middleware1Loader, middleware2])
+    var managedMiddleware1 = middlewareLib.combineMiddlewares([middleware2Loader, middleware1])
+    var managedMiddleware2 = middlewareLib.combineMiddlewares([middleware1Loader, middleware2])
 
-    managedMiddleware1 = middleware.createCyclicPreventionMiddleware('middleware1', managedMiddleware1)
-    managedMiddleware2 = middleware.createCyclicPreventionMiddleware('middleware2', managedMiddleware2)
+    managedMiddleware1 = middlewareLib.createCyclicPreventionMiddleware('middleware1', managedMiddleware1)
+    managedMiddleware2 = middlewareLib.createCyclicPreventionMiddleware('middleware2', managedMiddleware2)
 
-    var managedHandlerBuilder = middleware.createMiddlewareManagedHandlerBuilder(middleware2Loader, handlerBuilder)
+    var managedHandlerBuilder = middlewareLib.createMiddlewareManagedHandlerBuilder(middleware2Loader, handlerBuilder)
 
     var config = {
       quiverMiddlewares: {
@@ -79,16 +80,16 @@ describe('middleware test', function() {
   })
 
   it('install once middleware test', function(callback) {
-    var middleware1Loader = middleware.createMiddlewareLoadingMiddleware('middleware1')
-    var middleware2Loader = middleware.createMiddlewareLoadingMiddleware('middleware2')
+    var middleware1Loader = middlewareLib.createMiddlewareLoadingMiddleware('middleware1')
+    var middleware2Loader = middlewareLib.createMiddlewareLoadingMiddleware('middleware2')
 
-    var managedMiddleware1 = middleware.createInstallOnceMiddleware('middleware1', middleware1)
-    var managedMiddleware2 = middleware.createInstallOnceMiddleware('middleware2', managedMiddleware2)
+    var managedMiddleware1 = middlewareLib.createInstallOnceMiddleware('middleware1', middleware1)
+    var managedMiddleware2 = middlewareLib.createInstallOnceMiddleware('middleware2', managedMiddleware2)
 
-    managedMiddleware2 = middleware.combineMiddlewares([middleware1Loader, middleware2])
+    managedMiddleware2 = middlewareLib.combineMiddlewares([middleware1Loader, middleware2])
 
-    var handlerMiddleware = middleware.combineMiddlewares([middleware1Loader, middleware2Loader])
-    var managedHandlerBuilder = middleware.createMiddlewareManagedHandlerBuilder(handlerMiddleware, handlerBuilder)
+    var handlerMiddleware = middlewareLib.combineMiddlewares([middleware1Loader, middleware2Loader])
+    var managedHandlerBuilder = middlewareLib.createMiddlewareManagedHandlerBuilder(handlerMiddleware, handlerBuilder)
 
     var config = {
       quiverMiddlewares: {
@@ -102,6 +103,43 @@ describe('middleware test', function() {
 
       callback()
     })
+  })
 
+  it('extend handleable test', function(callback) {
+    var handler = function(args, inputStreamable, callback) {
+      callback(null, inputStreamable)
+    }
+
+    var handleable = {
+      toStreamHandler: function() {
+        return handler
+      },
+      extendedFeature: function() {
+        return true
+      }
+    }
+    
+    handleableLib.makeExtensible(handleable.extendedFeature)
+
+    var handleableBuilder = function(config, callback) {
+      callback(null, handleable)
+    }
+
+    var filter = function(config, handler, callback) {
+      callback(null, handler)
+    }
+
+    var streamMiddleware = middlewareLib.createMiddlewareFromFilter(filter)
+    var handleableMiddleware = middlewareLib.middlewareToHandleableMiddleware(
+      handleableLib.streamHandlerConvert, streamMiddleware)
+
+    handleableMiddleware({}, handleableBuilder, function(err, handleable) {
+      if(err) return callback(err)
+      
+      should.exists(handleable.toStreamHandler)
+      should.exists(handleable.extendedFeature)
+
+      callback()
+    })
   })
 })

@@ -32,6 +32,7 @@ describe('input handler test', function() {
 
     callback(null, handleable)
   }
+
   var config = {
     quiverHandleableBuilders: {
       'test handler': testHandleableBuilder
@@ -154,7 +155,8 @@ describe('input handler test', function() {
       outputType: 'void'
     }
 
-    var handlerMidddleware = middlewareLib.createInputHandlerMiddlewareFromSpec(handleableSpec)
+    var handlerMidddleware = middlewareLib.createInputHandlerMiddlewareFromSpec(
+      handleableSpec)
 
     handlerBuilder = middlewareLib.createMiddlewareManagedHandlerBuilder(
       handlerMidddleware, handlerBuilder)
@@ -167,7 +169,8 @@ describe('input handler test', function() {
   })
 
   it('skip handler test', function(callback) {
-    var middleware = middlewareLib.createInputHandlerMiddleware('test handler', handleable.streamHandlerConvert)
+    var middleware = middlewareLib.createInputHandlerMiddleware(
+      'test handler', handleable.streamHandlerConvert)
     
     var handlerBuilder = function(config, callback) {
       should.exists(config.quiverStreamHandlers['test handler'])
@@ -181,6 +184,51 @@ describe('input handler test', function() {
     var config = {
       quiverStreamHandlers: {
         'test handler': echoHandler
+      }
+    }
+
+    handlerBuilder(config, callback)
+  })
+
+  it('rebuild handler test', function(callback) {
+    var handleable1 = { }
+    var handleable2 = { }
+
+    should.notEqual(handleable1, handleable2)
+
+    var rebuilt = false
+
+    var inputHandleableBuilder = function(config, callback) {
+      rebuilt = true
+
+      callback(null, handleable2)
+    }
+
+    var handlerBuilder = function(config, callback) {
+      should.equal(rebuilt, true)
+      should.equal(config.quiverHandleables['test handler'], handleable2)
+    
+      callback(null, echoHandler)
+    }
+
+    var handleableSpec = {
+      handler: 'test handler',
+      type: 'handleable',
+      rebuild: true
+    }
+
+    var handlerMidddleware = middlewareLib.createInputHandlerMiddlewareFromSpec(
+      handleableSpec)
+
+    handlerBuilder = middlewareLib.createMiddlewareManagedHandlerBuilder(
+      handlerMidddleware, handlerBuilder)
+
+    var config = {
+      quiverHandleableBuilders: {
+        'test handler': inputHandleableBuilder
+      },
+      quiverHandleables: {
+        'test handler': handleable1
       }
     }
 
